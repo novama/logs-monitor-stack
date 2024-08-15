@@ -1,0 +1,183 @@
+networks:
+  lognetwork:
+
+services:
+  read:
+    image: grafana/loki:latest
+    container_name: loki-read
+    hostname: read-loki.logs
+    command: "-config.file=/etc/loki/config.yml -target=read"
+    ports:
+      - "3101:3100"
+      - "7946"
+      - "9095"
+    volumes:
+      - ./config/loki/loki-config.yml:/etc/loki/config.yml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - minio
+    networks: &loki-dns
+      lognetwork:
+        aliases:
+          - lognetwork
+
+  write:
+    image: grafana/loki:latest
+    container_name: loki-write
+    hostname: write-loki.logs
+    command: "-config.file=/etc/loki/config.yml -target=write"
+    ports:
+      - "3102:3100"
+      - "7946"
+      - "9095"
+    volumes:
+      - ./config/loki/loki-config.yml:/etc/loki/config.yml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - minio
+    networks:
+      <<: *loki-dns
+
+  backend:
+    image: grafana/loki:latest
+    container_name: loki-backend
+    hostname: backend-loki.logs
+    command: "-config.file=/etc/loki/config.yml -target=backend -legacy-read-mode=false"
+    ports:
+      - "3100"
+      - "7946"
+    volumes:
+      - ./config/loki/loki-config.yml:/etc/loki/config.yml
+    depends_on:
+      - gateway
+    networks:
+      - lognetwork
+
+  # Scrapper
+  alloy:
+    image: grafana/alloy-dev:latest
+    container_name: alloy
+    hostname: alloy.logs
+    command:  run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"
+    volumes:
+      - ./config/alloy/alloy-local-config.yml:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - gateway
+    networks:
+      - lognetwork
+
+  # Agent for shipping logs
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    hostname: promtail.logs
+    volumes:
+      - /var/log:/var/log
+      - ./config/promtail:/etc/promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - gateway
+    networks:
+      - lognetwork
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus.logs
+    networks:
+      - lognetwork
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus-config.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana.logs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana/grafana-datasources.yml:/etc/grafana/provisioning/datasources/ds.yml
+      # - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_DEFAULT_INSTANCE_NAME=My-Logs
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - gateway
+    networks:
+      - lognetwork
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    hostname: minio.logs
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=loki
+      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && \
+        mkdir -p /data/loki-ruler && \
+        minio server --console-address :9001 /data
+    volumes:
+      - ../.data/minio:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 15s
+      timeout: 20s
+      retries: 5
+    networks:
+      - lognetwork
+
+  gateway:
+    image: nginx:latest
+    container_name: gateway
+    hostname: gateway.logs
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/nginx/nginx-config.conf:/etc/nginx/nginx.conf
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - read
+      - write
+    networks:
+      - lognetwork
+
+  # Fake log generator (use in this example with Alloy)
+  flog:
+    image: mingrammer/flog
+    container_name: flog
+    command: -f json -d 200ms -l
+    networks:
+      - lognetwork
