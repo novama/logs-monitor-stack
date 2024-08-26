@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "cpp-httplib",
+    "fmt",
+    "spdlog",
+    "nlohmann-json"
+  ]
+}

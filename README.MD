@@ -17,6 +17,7 @@ Log Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafan
 - [Logging Examples](#logging-examples)
   - [Python Logging](#python-logging)
   - [C# Logging](#c-logging)
+  - [C++ Logging](#c-logging-1)
 - [Troubleshooting](#troubleshooting)
   - [Loki Not Receiving Logs](#loki-not-receiving-logs)
   - [Grafana Dashboard Not Displaying Data](#grafana-dashboard-not-displaying-data)
@@ -171,10 +172,22 @@ The Log Monitor Stack is composed of several interconnected components, each ful
 ### Python Logging
 
 For an example of logging in Python, see the [Python logging example](../examples/python).
+Make sure you install the dependencies for the example defined in the `requirements.txt` file.
+```shell
+pip install -r ./requirements.txt
+```
 
 ### C# Logging
 
 For an example of logging in C#, see the [C# logging example](../examples/csharp).
+
+### C++ Logging
+
+For an example of logging in C++, see the [C++ logging example](../examples/cpp).
+Make sure you install the dependencies for the example defined in the `vcpkg.json` file.
+```shell
+vcpkg install
+```
 
 ## Troubleshooting
 
