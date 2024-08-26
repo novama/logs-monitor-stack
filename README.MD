@@ -171,7 +171,7 @@ The Log Monitor Stack is composed of several interconnected components, each ful
 
 ### Python Logging
 
-For an example of logging in Python, see the [Python logging example](../examples/python).
+For an example of logging in Python, see the [Python logging example](./examples/python).
 Make sure you install the dependencies for the example defined in the `requirements.txt` file.
 ```shell
 pip install -r ./requirements.txt
@@ -179,11 +179,11 @@ pip install -r ./requirements.txt
 
 ### C# Logging
 
-For an example of logging in C#, see the [C# logging example](../examples/csharp).
+For an example of logging in C#, see the [C# logging example](./examples/csharp).
 
 ### C++ Logging
 
-For an example of logging in C++, see the [C++ logging example](../examples/cpp).
+For an example of logging in C++, see the [C++ logging example](./examples/cpp).
 Make sure you install the dependencies for the example defined in the `vcpkg.json` file.
 ```shell
 vcpkg install
