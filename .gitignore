@@ -461,7 +461,7 @@ logs/
 .idea/
 *deploy.zip
 .data/
-loki-data/
+data/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

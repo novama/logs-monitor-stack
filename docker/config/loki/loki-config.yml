@@ -26,11 +26,11 @@ common:
   compactor_address: http://backend-loki.logs:3100
   storage:
     s3:
-      endpoint: minio.logs:9000
+      endpoint: minio.logs:9010
       insecure: true
       bucketnames: loki-data
-      access_key_id: loki
-      secret_access_key: supersecret
+      access_key_id: ${MINIO_ROOT_USER}
+      secret_access_key: ${MINIO_ROOT_PASSWORD}
       s3forcepathstyle: true
   ring:
     kvstore:

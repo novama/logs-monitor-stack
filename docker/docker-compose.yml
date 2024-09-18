@@ -1,18 +1,20 @@
 networks:
   lognetwork:
+    driver: bridge
 
 services:
   read:
     image: grafana/loki:latest
     container_name: loki-read
     hostname: read-loki.logs
-    command: "-config.file=/etc/loki/config.yml -target=read"
     ports:
       - "3101:3100"
       - "7946"
       - "9095"
     volumes:
-      - ./config/loki/loki-config.yml:/etc/loki/config.yml
+      - ./config/loki/loki-config.yml:/etc/loki/config-template.yml
+      - ./config/loki/prepare-config.sh:/etc/loki/prepare-config.sh
+    entrypoint: ["/bin/sh", "-c", "sh /etc/loki/prepare-config.sh && loki -config.file=/etc/loki/config.yml -target=read"]
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
       interval: 10s
@@ -20,6 +22,7 @@ services:
       retries: 5
     depends_on:
       - minio
+    restart: unless-stopped
     networks: &loki-dns
       lognetwork:
         aliases:
@@ -29,13 +32,14 @@ services:
     image: grafana/loki:latest
     container_name: loki-write
     hostname: write-loki.logs
-    command: "-config.file=/etc/loki/config.yml -target=write"
     ports:
       - "3102:3100"
       - "7946"
       - "9095"
     volumes:
-      - ./config/loki/loki-config.yml:/etc/loki/config.yml
+      - ./config/loki/loki-config.yml:/etc/loki/config-template.yml
+      - ./config/loki/prepare-config.sh:/etc/loki/prepare-config.sh
+    entrypoint: ["/bin/sh", "-c", "sh /etc/loki/prepare-config.sh && loki -config.file=/etc/loki/config.yml -target=write"]
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
       interval: 10s
@@ -43,6 +47,7 @@ services:
       retries: 5
     depends_on:
       - minio
+    restart: unless-stopped
     networks:
       <<: *loki-dns
 
@@ -50,34 +55,35 @@ services:
     image: grafana/loki:latest
     container_name: loki-backend
     hostname: backend-loki.logs
-    command: "-config.file=/etc/loki/config.yml -target=backend -legacy-read-mode=false"
     ports:
       - "3100"
       - "7946"
     volumes:
-      - ./config/loki/loki-config.yml:/etc/loki/config.yml
+      - ./config/loki/loki-config.yml:/etc/loki/config-template.yml
+      - ./config/loki/prepare-config.sh:/etc/loki/prepare-config.sh
+    entrypoint: ["/bin/sh", "-c", "sh /etc/loki/prepare-config.sh && loki -config.file=/etc/loki/config.yml -target=backend -legacy-read-mode=false"]
     depends_on:
       - gateway
+    restart: unless-stopped
     networks:
       - lognetwork
 
-  # Scrapper
   alloy:
     image: grafana/alloy-dev:latest
     container_name: alloy
     hostname: alloy.logs
-    command:  run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     ports:
       - "12345:12345"
     volumes:
       - ./config/alloy/alloy-local-config.yml:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
       - gateway
+    restart: unless-stopped
     networks:
       - lognetwork
 
-  # Agent for shipping logs
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
@@ -88,6 +94,7 @@ services:
     command: -config.file=/etc/promtail/promtail-config.yml
     depends_on:
       - gateway
+    restart: unless-stopped
     networks:
       - lognetwork
 
@@ -95,14 +102,15 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     hostname: prometheus.logs
-    networks:
-      - lognetwork
     ports:
       - "9090:9090"
     volumes:
       - ./config/prometheus:/etc/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus-config.yml'
+    restart: unless-stopped
+    networks:
+      - lognetwork
 
   grafana:
     image: grafana/grafana:latest
@@ -110,12 +118,27 @@ services:
     hostname: grafana.logs
     ports:
       - "3000:3000"
-    volumes:
-      - ./config/grafana/grafana-datasources.yml:/etc/grafana/provisioning/datasources/ds.yml
-      # - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-      - GF_DEFAULT_INSTANCE_NAME=My-Logs
+      - GF_DEFAULT_INSTANCE_NAME=${GF_DEFAULT_INSTANCE_NAME}
+      - GF_AUTH_ANONYMOUS_ORG_NAME=${GF_AUTH_ANONYMOUS_ORG_NAME}
+      - GF_SERVER_DOMAIN=${GF_SERVER_DOMAIN}
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+      - GF_SECURITY_ADMIN_EMAIL=${GF_SECURITY_ADMIN_EMAIL}
+      - GF_AUTH_GITHUB_CLIENT_ID=${GF_AUTH_GITHUB_CLIENT_ID}
+      - GF_AUTH_GITHUB_CLIENT_SECRET=${GF_AUTH_GITHUB_CLIENT_SECRET}
+      - GF_AUTH_GITHUB_ALLOWED_DOMAINS=${GF_AUTH_GITHUB_ALLOWED_DOMAINS}
+      - GF_AUTH_GITHUB_ALLOWED_ORGANIZATIONS=${GF_AUTH_GITHUB_ALLOWED_ORGANIZATIONS}
+      - GF_AUTH_GITHUB_ROLE_ATTRIBUTE_PATH=${GF_AUTH_GITHUB_ROLE_ATTRIBUTE_PATH}
+      - GF_AUTH_GITHUB_SCOPES=${GF_AUTH_GITHUB_SCOPES}
+      - GF_AUTH_GITHUB_ENABLED=${GF_AUTH_GITHUB_ENABLED}
+    volumes:
+    # - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana/grafana-datasources.yml:/etc/grafana/provisioning/datasources/ds.yml
+      - ./config/grafana/wait-for-grafana.sh:/wait-for-it.sh:ro
+      - ./config/grafana/update_grafana_default_org.sh:/update_org.sh:ro
+    entrypoint: ["/bin/sh", "-c", "sh /wait-for-it.sh -- sh /update_org.sh & grafana-server"]
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -123,6 +146,7 @@ services:
       retries: 5
     depends_on:
       - gateway
+    restart: unless-stopped
     networks:
       - lognetwork
 
@@ -131,27 +155,28 @@ services:
     container_name: minio
     hostname: minio.logs
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9010:9010"
+      - "9011:9011"
     environment:
-      - MINIO_ROOT_USER=loki
-      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_PROMETHEUS_AUTH_TYPE=public
       - MINIO_UPDATE=off
+    volumes:
+      - loki-minio-data:/data
     entrypoint:
       - sh
       - -euc
       - |
         mkdir -p /data/loki-data && \
         mkdir -p /data/loki-ruler && \
-        minio server --console-address :9001 /data
-    volumes:
-      - ../.data/minio:/data
+        minio server --console-address :9011 /data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9010/minio/health/live" ]
       interval: 15s
       timeout: 20s
       retries: 5
+    restart: unless-stopped
     networks:
       - lognetwork
 
@@ -171,13 +196,14 @@ services:
     depends_on:
       - read
       - write
+    restart: unless-stopped
     networks:
       - lognetwork
 
-  # Fake log generator (use in this example with Alloy)
-  flog:
-    image: mingrammer/flog
-    container_name: flog
-    command: -f json -d 200ms -l
-    networks:
-      - lognetwork
+volumes:
+  loki-minio-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../data/minio
+      o: bind
