@@ -122,6 +122,7 @@ services:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_DEFAULT_INSTANCE_NAME=${GF_DEFAULT_INSTANCE_NAME}
       - GF_AUTH_ANONYMOUS_ORG_NAME=${GF_AUTH_ANONYMOUS_ORG_NAME}
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-%(protocol)s://%(domain)s:%(http_port)s/}
       - GF_SERVER_DOMAIN=${GF_SERVER_DOMAIN}
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
@@ -185,6 +186,7 @@ services:
     container_name: gateway
     hostname: gateway.logs
     ports:
+      - "80:80"
       - "3100:3100"
     volumes:
       - ./config/nginx/nginx-config.conf:/etc/nginx/nginx.conf
