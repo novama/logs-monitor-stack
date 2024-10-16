@@ -1,5 +1,5 @@
 networks:
-  lognetwork:
+  loki-net:
     driver: bridge
 
 services:
@@ -24,9 +24,9 @@ services:
       - minio
     restart: unless-stopped
     networks: &loki-dns
-      lognetwork:
+      loki-net:
         aliases:
-          - lognetwork
+          - loki-net
 
   write:
     image: grafana/loki:latest
@@ -63,10 +63,10 @@ services:
       - ./config/loki/prepare-config.sh:/etc/loki/prepare-config.sh
     entrypoint: ["/bin/sh", "-c", "sh /etc/loki/prepare-config.sh && loki -config.file=/etc/loki/config.yml -target=backend -legacy-read-mode=false"]
     depends_on:
-      - gateway
+      - nginx
     restart: unless-stopped
     networks:
-      - lognetwork
+      - loki-net
 
   alloy:
     image: grafana/alloy-dev:latest
@@ -79,10 +79,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
-      - gateway
+      - nginx
     restart: unless-stopped
     networks:
-      - lognetwork
+      - loki-net
 
   promtail:
     image: grafana/promtail:latest
@@ -93,10 +93,10 @@ services:
       - ./config/promtail:/etc/promtail
     command: -config.file=/etc/promtail/promtail-config.yml
     depends_on:
-      - gateway
+      - nginx
     restart: unless-stopped
     networks:
-      - lognetwork
+      - loki-net
 
   prometheus:
     image: prom/prometheus:latest
@@ -110,7 +110,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus-config.yml'
     restart: unless-stopped
     networks:
-      - lognetwork
+      - loki-net
 
   grafana:
     image: grafana/grafana:latest
@@ -146,10 +146,10 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      - gateway
+      - nginx
     restart: unless-stopped
     networks:
-      - lognetwork
+      - loki-net
 
   minio:
     image: minio/minio:latest
@@ -179,12 +179,12 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - lognetwork
+      - loki-net
 
-  gateway:
+  nginx:
     image: nginx:latest
-    container_name: gateway
-    hostname: gateway.logs
+    container_name: nginx.logs
+    hostname: nginx.logs
     ports:
       - "80:80"
       - "3100:3100"
@@ -200,7 +200,7 @@ services:
       - write
     restart: unless-stopped
     networks:
-      - lognetwork
+      - loki-net
 
 volumes:
   loki-minio-data:
