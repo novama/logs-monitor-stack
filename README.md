@@ -1,6 +1,6 @@
-# Log Monitor Stack
+# Logs Monitor Stack
 
-Log Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafana, and Loki to collect, visualize, and manage metrics and logs from Python scripts and C# applications. This project uses Docker containers to streamline deployment and management.
+Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafana, and Loki to collect, visualize, and manage metrics and logs from Python scripts and C# applications. This project uses Docker containers to streamline deployment and management.
 
 ## Table of Contents
 
@@ -58,7 +58,7 @@ Log Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafan
 
 ## Architecture Overview
 
-The Log Monitor Stack is composed of several interconnected components, each fulfilling a specific role:
+The Logs Monitor Stack is composed of several interconnected components, each fulfilling a specific role:
 
 - **Loki**: Serves as the centralized logging system. It is split into read, write, and backend components to handle log ingestion, querying, and storage.
 - **Prometheus**: Collects and stores metrics, which can be visualized in Grafana.
