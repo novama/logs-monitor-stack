@@ -122,18 +122,35 @@ services:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_DEFAULT_INSTANCE_NAME=${GF_DEFAULT_INSTANCE_NAME}
       - GF_AUTH_ANONYMOUS_ORG_NAME=${GF_AUTH_ANONYMOUS_ORG_NAME}
+      # SSL: Make sure to set the correct protocol and domain in the environment variable GF_SERVER_ROOT_URL
       - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-%(protocol)s://%(domain)s:%(http_port)s/}
       - GF_SERVER_DOMAIN=${GF_SERVER_DOMAIN}
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
       - GF_SECURITY_ADMIN_EMAIL=${GF_SECURITY_ADMIN_EMAIL}
+      # Github OAuth variables
+      - GF_AUTH_GITHUB_ENABLED=${GF_AUTH_GITHUB_ENABLED}
+      - GF_AUTH_GITHUB_NAME=${GF_AUTH_GITHUB_NAME}
       - GF_AUTH_GITHUB_CLIENT_ID=${GF_AUTH_GITHUB_CLIENT_ID}
       - GF_AUTH_GITHUB_CLIENT_SECRET=${GF_AUTH_GITHUB_CLIENT_SECRET}
       - GF_AUTH_GITHUB_ALLOWED_DOMAINS=${GF_AUTH_GITHUB_ALLOWED_DOMAINS}
       - GF_AUTH_GITHUB_ALLOWED_ORGANIZATIONS=${GF_AUTH_GITHUB_ALLOWED_ORGANIZATIONS}
       - GF_AUTH_GITHUB_ROLE_ATTRIBUTE_PATH=${GF_AUTH_GITHUB_ROLE_ATTRIBUTE_PATH}
       - GF_AUTH_GITHUB_SCOPES=${GF_AUTH_GITHUB_SCOPES}
-      - GF_AUTH_GITHUB_ENABLED=${GF_AUTH_GITHUB_ENABLED}
+      # Azure AD OAuth variables
+      - GF_AUTH_AZUREAD_ENABLED=${GF_AUTH_AZUREAD_ENABLED}
+      - GF_AUTH_AZUREAD_NAME=${GF_AUTH_AZUREAD_NAME}
+      - GF_AUTH_AZUREAD_CLIENT_ID=${GF_AUTH_AZUREAD_CLIENT_ID}
+      - GF_AUTH_AZUREAD_CLIENT_SECRET=${GF_AUTH_AZUREAD_CLIENT_SECRET}
+      - GF_AUTH_AZUREAD_SCOPES=${GF_AUTH_AZUREAD_SCOPES}
+      - GF_AUTH_AZUREAD_AUTH_URL=${GF_AUTH_AZUREAD_AUTH_URL}
+      - GF_AUTH_AZUREAD_TOKEN_URL=${GF_AUTH_AZUREAD_TOKEN_URL}
+      - GF_AUTH_AZUREAD_ALLOWED_DOMAINS=${GF_AUTH_AZUREAD_ALLOWED_DOMAINS}
+      - GF_AUTH_AZUREAD_ALLOWED_ORGANIZATIONS=${GF_AUTH_AZUREAD_ALLOWED_ORGANIZATIONS}
+      - GF_AUTH_AZUREAD_ALLOW_SIGN_UP=${GF_AUTH_AZUREAD_ALLOW_SIGN_UP}
+      - GF_AUTH_AZUREAD_ALLOW_ASSIGN_GRAFANA_ADMIN=${GF_AUTH_AZUREAD_ALLOW_ASSIGN_GRAFANA_ADMIN}
+      - GF_AUTH_USE_REFRESH_TOKEN=${GF_AUTH_USE_REFRESH_TOKEN}
+      - GF_AUTH_AZUREAD_USE_PKCE=${GF_AUTH_AZUREAD_USE_PKCE}
     volumes:
     # - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./config/grafana/grafana-datasources.yml:/etc/grafana/provisioning/datasources/ds.yml
@@ -183,13 +200,18 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: nginx.logs
+    container_name: nginx-logs
     hostname: nginx.logs
     ports:
       - "80:80"
+      # SSL: port 443. Uncomment the following line to enable SSL
+      - "443:443"
       - "3100:3100"
     volumes:
-      - ./config/nginx/nginx-config.conf:/etc/nginx/nginx.conf
+      # - ./config/nginx/nginx-config.conf:/etc/nginx/nginx.conf
+      # SSL: config file and path to certificates directory. Uncomment the following lines to enable SSL and comment the line above
+      - ./config/nginx/nginx-config-ssl.conf:/etc/nginx/nginx.conf
+      - ../grafana_ssl:/etc/grafana_ssl
     healthcheck:
       test: ["CMD", "service", "nginx", "status"]
       interval: 10s

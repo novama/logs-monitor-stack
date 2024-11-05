@@ -462,6 +462,10 @@ logs/
 *deploy.zip
 .data/
 data/
+grafana_ssl/
+.grafana_ssl/
+ssl/
+.ssl/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
