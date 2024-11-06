@@ -3,7 +3,7 @@ datasources:
   - name: Loki
     type: loki
     access: proxy
-    url: http://gateway.logs:3100
+    url: http://nginx.logs:3100
     jsonData:
       httpHeaderName1: "X-Scope-OrgID"
     secureJsonData:

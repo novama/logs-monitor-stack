@@ -4,7 +4,6 @@ Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafa
 
 ## Table of Contents
 
-- [Table of Contents](#table-of-contents)
 - [Features](#features)
 - [Architecture Overview](#architecture-overview)
 - [Prerequisites](#prerequisites)
@@ -52,7 +51,7 @@ Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafa
 - **Promtail**: Agent for shipping logs to Loki.
 - **Alloy**: Scraper for Docker metrics.
 - **Minio**: High-performance object storage service.
-- **Nginx (Gateway)**: Acts as a reverse proxy to route requests to the correct Loki service.
+- **Nginx**: Acts as a reverse proxy to route requests to the correct Loki service.
 - **Flog**: Generates fake logs for testing.
 - **Docker**: Containerization for easy deployment.
 
@@ -66,7 +65,7 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 - **Promtail**: Collects logs from the local system and forwards them to Loki.
 - **Alloy**: Scrapes Docker metrics and forwards them to Loki.
 - **Minio**: Provides S3-compatible storage for Loki’s log data.
-- **Nginx (Gateway)**: Routes HTTP requests to the appropriate Loki components.
+- **Nginx**: Routes HTTP requests to the appropriate Loki components, and publish Grafana on HTTP (80) or HTTPS (443).
 - **Flog**: Generates test logs to simulate real-world logging scenarios.
 
 ## Prerequisites
