@@ -86,6 +86,13 @@ logger.setLevel(logging.DEBUG)
 # Add the configured LokiLoggerHandler to the logger
 logger.addHandler(loki_logger_handler)
 
+# Add a console handler to the logger
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+console_formatter = logging.Formatter('%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+console_handler.setFormatter(console_formatter)
+logger.addHandler(console_handler)
+
 # Post some log messages
 logger.info("This is an informational message posted from Python using LokiLoggerHandler",
             extra={'custom_field': 'custom_value'})

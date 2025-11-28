@@ -18,6 +18,7 @@ Usage:
 """
 
 import json
+import sys
 import time
 
 import requests
@@ -59,6 +60,8 @@ class LokiHandler:
         # Extract log level and message from Loguru record dict
         log_level = record['level'].name.lower()
         log_message = record.get('message', '')
+        # Format the log message to include timestamp and level
+        log_message_formatted = f"{record['time'].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} [{log_level.upper()}] {log_message}"
 
         # Get the current time in nanoseconds since the epoch
         current_time_epoch_ns = f"{time.time_ns()}"
@@ -76,13 +79,13 @@ class LokiHandler:
                     "values": [
                         [
                             current_time_epoch_ns,
-                            log_message
+                            log_message_formatted
                         ]
                     ]
                 }
             ]
         }
-        
+
         # Prints payload in console for debugging
         print(payload)
 
@@ -125,6 +128,15 @@ password = None
 
 # Create an instance of the LokiHandler (our custom implementation class) with appropriate parameters
 loki_handler = LokiHandler(loki_url, "dev", "python", "my-computer", tenant, user, password)
+
+# Configure Loguru to use the custom format for console output
+# Remove the default handler
+logger.remove()
+# Define a custom format for the console output with colorized level icons
+custom_format = "<level>{time:YYYY-MM-DD HH:mm:ss.SSS} [{level}] {message}</level>"
+# Add a new handler with the custom format and ensure colorization is enabled
+logger.add(sys.stdout, format=custom_format, colorize=True)
+
 # Add the LokiHandler to the loguru logger using a lambda to pass the record dict
 logger.add(lambda msg: loki_handler.write(msg.record), level="DEBUG")
 
