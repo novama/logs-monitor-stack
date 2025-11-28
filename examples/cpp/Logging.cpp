@@ -17,8 +17,18 @@ int main() {
         };
 
         // Create the LokiLoggerSink
-        std::string loki_url = "http://localhost:3100/loki/api/v1/push";
-        auto loki_sink = std::make_shared<loki_sink_mt>(loki_url, labels, "tenant1");
+        std::string loki_url = "http://localhost:3100";
+        // Optional: Define Loki's tenant if multi-tenancy is used
+        // For our log-monitor-stack setup, we use "tenant1"
+        std::string tenant = "tenant1";
+        // Optional: Define Loki's user and password if authentication is required
+        // For our log-monitor-stack setup, no authentication is needed
+        std::string user = "";
+        // Important: In Grafana Cloud, an API key is used as the password
+        std::string password = "";
+
+        // Create the Loki sink
+        auto loki_sink = std::make_shared<loki_sink_mt>(loki_url, labels, tenant, user, password);
 
         // Create other sinks if needed (e.g., console sink)
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
