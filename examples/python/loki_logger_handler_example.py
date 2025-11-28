@@ -26,7 +26,7 @@ from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
 # Set up logging
 logger = logging.getLogger("loki_logger_handler_example")
 
-
+# Function to create and configure the LokiLoggerHandler
 def get_loki_logger_handler_configured(url, environment, application, host, loki_tenant=None, loki_user=None,
                                        loki_password=None):
     loki_push_endpoint = "/loki/api/v1/push"
