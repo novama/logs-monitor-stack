@@ -33,6 +33,9 @@ int main() {
         // Create other sinks if needed (e.g., console sink)
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
+        // Set a custom pattern for the console sink with color codes
+        console_sink->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] [%l] %v%$");
+
         // Combine the sinks into a logger
         std::vector<spdlog::sink_ptr> sinks{ console_sink, loki_sink };
         auto logger = std::make_shared<spdlog::logger>("multi_sink", sinks.begin(), sinks.end());
