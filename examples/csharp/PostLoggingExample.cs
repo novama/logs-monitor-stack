@@ -26,10 +26,10 @@ public static class PostLoggingExample
     {
         // Define Loki server URL
         var lokiUrl = "http://localhost:3100";
-        // Optional: Define lokiTenant if multi-tenancy is used
+        // Optional: Define Loki's tenant if multi-tenancy is used
         // For our log-monitor-stack setup, we use "tenant1"
         var tenant = "tenant1";
-        // Optional: Define lokiUser and lokiPassword if authentication is required
+        // Optional: Define Loki's user and password if authentication is required
         // For our log-monitor-stack setup, no authentication is needed
         var user = string.Empty;
         // Important: In Grafana Cloud, an API key is used as the password

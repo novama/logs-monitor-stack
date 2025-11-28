@@ -114,10 +114,10 @@ class LokiHandler:
 
 # Define Loki server URL
 loki_url = "http://localhost:3100"
-# Optional: Define loki_tenant if multi-tenancy is used
+# Optional: Define Loki's tenant if multi-tenancy is used
 # For our log-monitor-stack setup, we use "tenant1"
 tenant = "tenant1"
-# Optional: Define loki_user and loki_password if authentication is required
+# Optional: Define Loki's user and password if authentication is required
 # For our log-monitor-stack setup, no authentication is needed
 user = None
 # Important: In Grafana Cloud, an API key is used as the password
