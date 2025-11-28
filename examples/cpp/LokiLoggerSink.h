@@ -37,6 +37,18 @@ void loki_sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
         spdlog::memory_buf_t formatted;
         this->formatter_->format(msg, formatted);
 
+        // Create a copy of labels_ and add the lowercase logging level
+        auto labels_with_level = labels_;
+        std::string level_str(spdlog::level::to_string_view(msg.level).data(), spdlog::level::to_string_view(msg.level).size());
+
+        // Convert the logging level to lowercase
+        std::transform(level_str.begin(), level_str.end(), level_str.begin(), [](unsigned char c) {
+            return std::tolower(c);
+            });
+
+        // Assign the transformed logging level to the map
+        labels_with_level["level"] = level_str;
+
         // Prepare the log entry with the correct timestamp
         auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
             msg.time.time_since_epoch()).count();
@@ -47,7 +59,7 @@ void loki_sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
         // Construct the Loki-compatible JSON payload
         nlohmann::json log_entry = {
             {"streams", {{
-                {"stream", labels_},
+                {"stream", labels_with_level},
                 {"values", nlohmann::json::array({
                     {timestamp_str, std::string(formatted.data(), formatted.size())}
                 })}

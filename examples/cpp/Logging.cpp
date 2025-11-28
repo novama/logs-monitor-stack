@@ -10,9 +10,9 @@ int main() {
     try {
         // Define some example labels for Loki
         std::map<std::string, std::string> labels = {
-            {"application", "example_app"},
             {"environment", "dev"},
-            {"host", "localhost"},
+            {"application", "cpp"},
+            {"host", "my-computer"},
             {"service", "example_service"}
         };
 
@@ -31,13 +31,16 @@ int main() {
         spdlog::set_default_logger(logger);
 
         // Set log level (optional)
-        logger->set_level(spdlog::level::info);
-        logger->flush_on(spdlog::level::info);
+        logger->set_level(spdlog::level::debug);
+        logger->flush_on(spdlog::level::debug);
 
-        // Log some example messages to Loki
+        // Post some log messages
         spdlog::info("This is an informational message posted from C++");
         spdlog::warn("This is a warning message message posted from C++");
         spdlog::error("This is an error message message posted from C++");
+		spdlog::debug("This is a debug message message posted from C++");
+
+		std::cout << "Execution complete. Check Loki server for logs." << std::endl;
 
     } catch (const std::exception& e) {
         std::cerr << "Exception occurred: " << e.what() << std::endl;

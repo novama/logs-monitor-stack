@@ -19,7 +19,7 @@ find_package(httplib CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
 # Add source to this project's executable.
-add_executable (Logging "Logging.cpp" "Logging.h" "EnvLoad.cpp" "EnvLoad.h" "LogConfig.cpp" "LogConfig.h" "LokiLoggerSink.h")
+add_executable (Logging "Logging.cpp" "Logging.h" "LokiLoggerSink.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Logging PROPERTY CXX_STANDARD 20)
