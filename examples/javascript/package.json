@@ -1,0 +1,18 @@
+{
+  "name": "winston-loki-example",
+  "version": "1.0.0",
+  "description": "Example script demonstrating Winston logging with Loki using the winston-loki package.",
+  "main": "winston_loki_example.js",
+  "scripts": {
+    "start": "node winston_loki_example.js"
+  },
+  "author": "Norman Valerio",
+  "license": "MIT",
+  "dependencies": {
+    "winston": "^3.18.3",
+    "winston-loki": "^6.1.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
