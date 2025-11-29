@@ -7,6 +7,8 @@
 #include <mutex>
 #include <string>
 #include <map>
+#include <iomanip>
+#include <sstream>
 
 template<typename Mutex>
 class loki_sink : public spdlog::sinks::base_sink<Mutex> {
@@ -33,9 +35,37 @@ private:
 template<typename Mutex>
 void loki_sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
     try {
-        // Format the message
-        spdlog::memory_buf_t formatted;
-        this->formatter_->format(msg, formatted);
+        // Format the message manually to match the desired pattern: "%Y-%m-%d %H:%M:%S.%e"
+        std::ostringstream oss;
+        auto time_point = std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(msg.time.time_since_epoch()));
+        auto time = std::chrono::system_clock::to_time_t(time_point);
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+            msg.time.time_since_epoch()).count() % 1000;
+
+        // Format timestamp
+        oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S")
+            << "." << std::setfill('0') << std::setw(3) << milliseconds;
+
+        // Add log level
+        oss << " [" << std::string(spdlog::level::to_string_view(msg.level).data(), spdlog::level::to_string_view(msg.level).size()) << "] ";
+
+        // Add the log message
+        oss.write(msg.payload.data(), msg.payload.size());
+
+        // Get the formatted message
+        std::string formatted_message = oss.str();
+
+        // Create a copy of labels_ and add the lowercase logging level
+        auto labels_with_level = labels_;
+        std::string level_str(spdlog::level::to_string_view(msg.level).data(), spdlog::level::to_string_view(msg.level).size());
+
+        // Convert the logging level to lowercase
+        std::transform(level_str.begin(), level_str.end(), level_str.begin(), [](unsigned char c) {
+            return std::tolower(c);
+        });
+
+        // Assign the transformed logging level to the map
+        labels_with_level["level"] = level_str;
 
         // Prepare the log entry with the correct timestamp
         auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -47,9 +77,9 @@ void loki_sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
         // Construct the Loki-compatible JSON payload
         nlohmann::json log_entry = {
             {"streams", {{
-                {"stream", labels_},
+                {"stream", labels_with_level},
                 {"values", nlohmann::json::array({
-                    {timestamp_str, std::string(formatted.data(), formatted.size())}
+                    {timestamp_str, formatted_message}
                 })}
             }}}
         };

@@ -1,12 +1,28 @@
 
+using System;
+
 class Program
 {
     static void Main(string[] args)
     {
-        // Calling example that uses Serilog Sink package
-        SerilogLoggingExample.RunExample();
+        try
+        {
+            // Calling example that submits a direct API POST request
+            PostLoggingExample.RunExample();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred executing the PostLoggingExample: {ex.Message}");
+        }
 
-        // Calling example that submits a direct API POST request
-        PostLoggingExample.RunExample();
+        try
+        {
+            // Calling example that uses Serilog Sink package
+            SerilogLoggingExample.RunExample();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred executing the SerilogLoggingExample: {ex.Message}");
+        }
     }
 }

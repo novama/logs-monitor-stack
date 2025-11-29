@@ -1,6 +1,14 @@
 # Logs Monitor Stack
 
-Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafana, and Loki to collect, visualize, and manage metrics and logs from Python scripts and C# applications. This project uses Docker containers to streamline deployment and management.
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![C++](https://img.shields.io/badge/C++-17%2B-green.svg)](https://isocpp.org/)
+[![C#](https://img.shields.io/badge/C%23-.NET%209.0+-purple.svg)](https://dotnet.microsoft.com/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue.svg)](https://learn.microsoft.com/en-us/powershell/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Logs Monitor Stack is a versatile and efficient solution for monitoring and logging. It integrates Prometheus, Grafana, and Loki to collect, visualize, and manage metrics and logs from diverse applications, including Python scripts, C# programs, JavaScript, PowerShell scripts, etc. By leveraging Docker containers, the stack ensures seamless deployment and simplified management, making it ideal for modern development and operational workflows.
 
 ## Table of Contents
 
@@ -17,6 +25,8 @@ Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafa
   - [Python Logging](#python-logging)
   - [C# Logging](#c-logging)
   - [C++ Logging](#c-logging-1)
+  - [JavaScript Logging](#javascript-logging)
+  - [PowerShell Logging](#powershell-logging)
 - [Troubleshooting](#troubleshooting)
   - [Loki Not Receiving Logs](#loki-not-receiving-logs)
   - [Grafana Dashboard Not Displaying Data](#grafana-dashboard-not-displaying-data)
@@ -98,7 +108,6 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 - **Prometheus** configuration: [prometheus/prometheus-config.yml](./docker/config/prometheus/prometheus-config.yml)
 - **Promtail** configuration: [promtail/promtail-config.yml](./docker/config/promtail/promtail-config.yml)
 
-
 ## Usage
 
 ### Start the Docker containers
@@ -126,7 +135,7 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 
    **Notes:**
    ***For testing purposes only***: You can modify your `docker-compose.yml` file and add the following environment variables for the `grafana` service and you will disable the login screen, activating anonymous access with administrator permissions:
-   
+
    ```yml
    environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -138,10 +147,12 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 
    You can override configuration settings with environment variables.
    To override an option:
+
    ```yml
    environment:
       - GF_<SectionName>_<KeyName>=<Value>
    ```
+
    For more information about this, please visit the [official documentation](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#override-configuration-with-environment-variables)
 
 2. **Add Loki as a Data Source**:
@@ -161,31 +172,74 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
    - Click **Add visualization**.
    - Select **Loki** as the data source.
    - Enter a log query to visualize logs. For example:
+
      ```logql
      {system_logs="varlogs"}
      ```
+
    - Click **Save** to save the panel to the dashboard.
 
 ## Logging Examples
 
 ### Python Logging
 
-For an example of logging in Python, see the [Python logging example](./examples/python).
-Make sure you install the dependencies for the example defined in the `requirements.txt` file.
+For examples of logging in Python, see the [Python logging examples](./examples/python).
+
+There are two examples:
+
+1. **Loguru Integration**: Demonstrates how to use the Loguru library to send logs to Loki.
+2. **Direct API Integration**: Shows how to directly POST logs to the Loki Push Logs API.
+
+Make sure you install the dependencies for the examples defined in the `requirements.txt` file.
+
 ```shell
 pip install -r ./requirements.txt
+python post_logging_example.py
 ```
 
 ### C# Logging
 
-For an example of logging in C#, see the [C# logging example](./examples/csharp).
+For examples of logging in C#, see the [C# logging examples](./examples/csharp).
+
+There are two examples:
+
+1. **Serilog Integration**: Demonstrates how to use Serilog to send logs to Loki.
+2. **Direct API Integration**: Shows how to directly POST logs to the Loki Push Logs API using a custom `LokiHandler`.
+
+```shell
+# Example usage
+# Open the solution in Visual Studio and run the project.
+```
 
 ### C++ Logging
 
 For an example of logging in C++, see the [C++ logging example](./examples/cpp).
 Make sure you install the dependencies for the example defined in the `vcpkg.json` file.
+
 ```shell
 vcpkg install
+cmake .
+make
+./Logging
+```
+
+### JavaScript Logging
+
+For an example of logging in JavaScript, see the [JavaScript logging example](./examples/javascript).
+This example demonstrates how to use the `winston-loki` transport to send logs to Loki.
+
+```shell
+npm install
+node winston_loki_example.js
+```
+
+### PowerShell Logging
+
+For an example of logging in PowerShell, see the [PowerShell logging example](./examples/powershell).
+This example demonstrates how to directly POST logs to the Loki Push Logs API.
+
+```powershell
+powershell.exe -File post_logging_example.ps1
 ```
 
 ## Troubleshooting
@@ -244,6 +298,7 @@ vcpkg install
 ### Updating Docker Images
 
 - Pull the latest versions of the Docker images and restart the containers:
+
   ```sh
   docker-compose pull
   docker-compose up -d
@@ -252,6 +307,7 @@ vcpkg install
 ### Configuration Changes
 
 - Safely apply configuration changes by editing the relevant files and restarting the affected services:
+
   ```sh
   docker-compose up -d <service_name>
   ```
@@ -272,19 +328,21 @@ vcpkg install
 
 ### Example Dashboards
 
-- Create dashboards in Grafana
+- Create dashboards in Grafana that visualize key metrics and logs. Example dashboards could include:
 
- that visualize key metrics and logs. Example dashboards could include:
-  - **System Health**: CPU, memory, and disk usage.
-  - **Log Analysis**: Error rates, log frequency, and anomaly detection.
+- **System Health**: CPU, memory, and disk usage.
+- **Log Analysis**: Error rates, log frequency, and anomaly detection.
 
 ### Log Queries
 
-- **Error Monitoring**: 
+- **Error Monitoring**:
+
   ```logql
   {system_logs="varlogs"} |= "error"
   ```
+
 - **Performance Metrics**:
+
   ```logql
   {system_logs="varlogs"} | duration > 100ms
   ```
