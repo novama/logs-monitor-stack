@@ -1,5 +1,11 @@
 # Logs Monitor Stack
 
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![C++](https://img.shields.io/badge/C++-17%2B-green.svg)](https://isocpp.org/)
+[![C#](https://img.shields.io/badge/C%23-.NET%206.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafana, and Loki to collect, visualize, and manage metrics and logs from Python scripts and C# applications. This project uses Docker containers to streamline deployment and management.
 
 ## Table of Contents
@@ -98,7 +104,6 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 - **Prometheus** configuration: [prometheus/prometheus-config.yml](./docker/config/prometheus/prometheus-config.yml)
 - **Promtail** configuration: [promtail/promtail-config.yml](./docker/config/promtail/promtail-config.yml)
 
-
 ## Usage
 
 ### Start the Docker containers
@@ -126,7 +131,7 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 
    **Notes:**
    ***For testing purposes only***: You can modify your `docker-compose.yml` file and add the following environment variables for the `grafana` service and you will disable the login screen, activating anonymous access with administrator permissions:
-   
+
    ```yml
    environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -138,10 +143,12 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 
    You can override configuration settings with environment variables.
    To override an option:
+
    ```yml
    environment:
       - GF_<SectionName>_<KeyName>=<Value>
    ```
+
    For more information about this, please visit the [official documentation](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#override-configuration-with-environment-variables)
 
 2. **Add Loki as a Data Source**:
@@ -161,9 +168,11 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
    - Click **Add visualization**.
    - Select **Loki** as the data source.
    - Enter a log query to visualize logs. For example:
+
      ```logql
      {system_logs="varlogs"}
      ```
+
    - Click **Save** to save the panel to the dashboard.
 
 ## Logging Examples
@@ -172,6 +181,7 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 
 For an example of logging in Python, see the [Python logging example](./examples/python).
 Make sure you install the dependencies for the example defined in the `requirements.txt` file.
+
 ```shell
 pip install -r ./requirements.txt
 ```
@@ -184,6 +194,7 @@ For an example of logging in C#, see the [C# logging example](./examples/csharp)
 
 For an example of logging in C++, see the [C++ logging example](./examples/cpp).
 Make sure you install the dependencies for the example defined in the `vcpkg.json` file.
+
 ```shell
 vcpkg install
 ```
@@ -244,6 +255,7 @@ vcpkg install
 ### Updating Docker Images
 
 - Pull the latest versions of the Docker images and restart the containers:
+
   ```sh
   docker-compose pull
   docker-compose up -d
@@ -252,6 +264,7 @@ vcpkg install
 ### Configuration Changes
 
 - Safely apply configuration changes by editing the relevant files and restarting the affected services:
+
   ```sh
   docker-compose up -d <service_name>
   ```
@@ -272,19 +285,21 @@ vcpkg install
 
 ### Example Dashboards
 
-- Create dashboards in Grafana
+- Create dashboards in Grafana that visualize key metrics and logs. Example dashboards could include:
 
- that visualize key metrics and logs. Example dashboards could include:
-  - **System Health**: CPU, memory, and disk usage.
-  - **Log Analysis**: Error rates, log frequency, and anomaly detection.
+- **System Health**: CPU, memory, and disk usage.
+- **Log Analysis**: Error rates, log frequency, and anomaly detection.
 
 ### Log Queries
 
-- **Error Monitoring**: 
+- **Error Monitoring**:
+
   ```logql
   {system_logs="varlogs"} |= "error"
   ```
+
 - **Performance Metrics**:
+
   ```logql
   {system_logs="varlogs"} | duration > 100ms
   ```
