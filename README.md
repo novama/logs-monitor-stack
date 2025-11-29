@@ -2,11 +2,13 @@
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![C++](https://img.shields.io/badge/C++-17%2B-green.svg)](https://isocpp.org/)
-[![C#](https://img.shields.io/badge/C%23-.NET%206.0-purple.svg)](https://dotnet.microsoft.com/)
+[![C#](https://img.shields.io/badge/C%23-.NET%209.0+-purple.svg)](https://dotnet.microsoft.com/)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue.svg)](https://learn.microsoft.com/en-us/powershell/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafana, and Loki to collect, visualize, and manage metrics and logs from Python scripts and C# applications. This project uses Docker containers to streamline deployment and management.
+Logs Monitor Stack is a versatile and efficient solution for monitoring and logging. It integrates Prometheus, Grafana, and Loki to collect, visualize, and manage metrics and logs from diverse applications, including Python scripts, C# programs, JavaScript, PowerShell scripts, etc. By leveraging Docker containers, the stack ensures seamless deployment and simplified management, making it ideal for modern development and operational workflows.
 
 ## Table of Contents
 
@@ -23,6 +25,8 @@ Logs Monitor Stack is a monitoring and logging stack utilizing Prometheus, Grafa
   - [Python Logging](#python-logging)
   - [C# Logging](#c-logging)
   - [C++ Logging](#c-logging-1)
+  - [JavaScript Logging](#javascript-logging)
+  - [PowerShell Logging](#powershell-logging)
 - [Troubleshooting](#troubleshooting)
   - [Loki Not Receiving Logs](#loki-not-receiving-logs)
   - [Grafana Dashboard Not Displaying Data](#grafana-dashboard-not-displaying-data)
@@ -179,16 +183,33 @@ The Logs Monitor Stack is composed of several interconnected components, each fu
 
 ### Python Logging
 
-For an example of logging in Python, see the [Python logging example](./examples/python).
-Make sure you install the dependencies for the example defined in the `requirements.txt` file.
+For examples of logging in Python, see the [Python logging examples](./examples/python).
+
+There are two examples:
+
+1. **Loguru Integration**: Demonstrates how to use the Loguru library to send logs to Loki.
+2. **Direct API Integration**: Shows how to directly POST logs to the Loki Push Logs API.
+
+Make sure you install the dependencies for the examples defined in the `requirements.txt` file.
 
 ```shell
 pip install -r ./requirements.txt
+python post_logging_example.py
 ```
 
 ### C# Logging
 
-For an example of logging in C#, see the [C# logging example](./examples/csharp).
+For examples of logging in C#, see the [C# logging examples](./examples/csharp).
+
+There are two examples:
+
+1. **Serilog Integration**: Demonstrates how to use Serilog to send logs to Loki.
+2. **Direct API Integration**: Shows how to directly POST logs to the Loki Push Logs API using a custom `LokiHandler`.
+
+```shell
+# Example usage
+# Open the solution in Visual Studio and run the project.
+```
 
 ### C++ Logging
 
@@ -197,6 +218,28 @@ Make sure you install the dependencies for the example defined in the `vcpkg.jso
 
 ```shell
 vcpkg install
+cmake .
+make
+./Logging
+```
+
+### JavaScript Logging
+
+For an example of logging in JavaScript, see the [JavaScript logging example](./examples/javascript).
+This example demonstrates how to use the `winston-loki` transport to send logs to Loki.
+
+```shell
+npm install
+node winston_loki_example.js
+```
+
+### PowerShell Logging
+
+For an example of logging in PowerShell, see the [PowerShell logging example](./examples/powershell).
+This example demonstrates how to directly POST logs to the Loki Push Logs API.
+
+```powershell
+powershell.exe -File post_logging_example.ps1
 ```
 
 ## Troubleshooting
