@@ -13,9 +13,14 @@
 */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Serilog;
-using Serilog.Formatting.Json;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Formatting;
 using Serilog.Sinks.Grafana.Loki;
+using Serilog.Sinks.SystemConsole.Themes;
 
 public class SerilogLoggingExample
 {
@@ -33,10 +38,17 @@ public class SerilogLoggingExample
         var password = string.Empty;
 
         // Create a configured instance of Serilog logger with Loki sink
-        var logger = GetSerilogConfiguration(lokiUrl, "dev", "csharp", "my-computer",
-            tenant, user, password).CreateLogger();
+        var loggerConfiguration = GetSerilogConfigurationWithLoki(lokiUrl, "dev", "csharp", "my-computer",
+            tenant, user, password);
+        // Also log to console for local visibility
+        // Update the console output to include colors based on log level
+        loggerConfiguration.WriteTo.Console(
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u4}] {Message}{NewLine}",
+            theme: AnsiConsoleTheme.Literate
+        );
+        loggerConfiguration.MinimumLevel.Debug();
         // Configure the global Serilog logger
-        Log.Logger = logger;
+        Log.Logger = loggerConfiguration.CreateLogger();
 
         // Post some log messages
         Log.Information("This is an informational message posted from C# using Serilog Sinks");
@@ -50,7 +62,11 @@ public class SerilogLoggingExample
         Console.WriteLine("Execution complete. Check Loki server for logs.");
     }
 
-    public static LoggerConfiguration GetSerilogConfiguration(string url, string environment, string application,
+    /// <summary>
+    ///     Configures Serilog to send logs to Grafana Loki with specified parameters.
+    /// </summary>
+    public static LoggerConfiguration GetSerilogConfigurationWithLoki(string url, string environment,
+        string application,
         string host, string lokiTenant = null, string lokiUser = null, string lokiPassword = null)
     {
         const string lokiPushEndpoint = "/loki/api/v1/push";
@@ -58,13 +74,8 @@ public class SerilogLoggingExample
         // Remove any occurrence of the push endpoint (case-insensitive) and then remove any trailing "/"
         // The Serilog sink will append the push endpoint automatically, so we need to ensure it's not duplicated
         if (!string.IsNullOrEmpty(url))
-        {
-            // Use Replace overload with StringComparison to remove every occurrence case-insensitively
-            url = url.Replace(lokiPushEndpoint, string.Empty, StringComparison.OrdinalIgnoreCase);
-
-            // Remove any trailing slashes that may remain after the replacements
-            url = url.TrimEnd('/');
-        }
+            // Use Replace overload with StringComparison to remove every occurrence case-insensitively and remove trailing slash
+            url = url.Replace(lokiPushEndpoint, string.Empty, StringComparison.OrdinalIgnoreCase).TrimEnd('/');
 
         LokiCredentials lokiCredentials = null;
         // If lokiUser and lokiPassword are provided, use them for basic authentication
@@ -85,15 +96,52 @@ public class SerilogLoggingExample
 
         // Configure Serilog
         var loggerConfiguration = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Console()
+            .Enrich.With(new LogLevelEnricher()) // Use the custom enricher
             .WriteTo.GrafanaLoki(
                 url,
                 lokiLabels,
                 credentials: lokiCredentials,
-                textFormatter: new JsonFormatter(),
-                tenant: lokiTenant
+                //textFormatter: new JsonFormatter(),
+                textFormatter: new NormalTextFormatter(),
+                tenant: lokiTenant,
+                propertiesAsLabels: new[] { "level" }
             );
         return loggerConfiguration;
+    }
+
+    public class NormalTextFormatter : ITextFormatter
+    {
+        public void Format(LogEvent logEvent, TextWriter output)
+        {
+            // Map log levels to their desired abbreviations
+            var levelMap = new Dictionary<LogEventLevel, string>
+            {
+                [LogEventLevel.Verbose] = "VERB",
+                [LogEventLevel.Debug] = "DEBUG",
+                [LogEventLevel.Information] = "INFO",
+                [LogEventLevel.Warning] = "WARN",
+                [LogEventLevel.Error] = "ERROR",
+                [LogEventLevel.Fatal] = "FATAL"
+            };
+
+            // Get the abbreviated log level
+            var abbreviatedLevel = levelMap.TryGetValue(logEvent.Level, out var value)
+                ? value
+                : logEvent.Level.ToString().ToUpper();
+
+            // Write the formatted log entry
+            output.WriteLine(
+                $"{logEvent.Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{abbreviatedLevel}] {logEvent.MessageTemplate}");
+        }
+    }
+
+    public class LogLevelEnricher : ILogEventEnricher
+    {
+        public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+        {
+            var lowercaseLevel = logEvent.Level.ToString().ToLower();
+            var logLevelProperty = propertyFactory.CreateProperty("level", lowercaseLevel);
+            logEvent.AddPropertyIfAbsent(logLevelProperty);
+        }
     }
 }

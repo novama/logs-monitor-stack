@@ -110,10 +110,11 @@ public class LokiHandler
         if (!_url.EndsWith(lokiPushEndpoint)) _url += lokiPushEndpoint;
 
         var logLevel = level.Trim().ToLower();
-        var logMessage = $"{level} | {message}";
-
         // Get the current time in nanoseconds since the epoch
         var currentTimeEpochNs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000 + "";
+        // Get the formatted timestamp to use in the log message
+        var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        var logMessage = $"{timestamp} [{level}] {message}";
 
         var payload = new
         {
@@ -137,7 +138,7 @@ public class LokiHandler
         };
 
         // Prints payload in console for debugging
-        Console.WriteLine("Loki Payload: " + JsonSerializer.Serialize(payload));
+        // Console.WriteLine("Loki Payload: " + JsonSerializer.Serialize(payload));
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         // Prepare headers and payload for Loki
@@ -158,7 +159,22 @@ public class LokiHandler
         {
             response = await HttpClient.PostAsync(_url, content);
             response.EnsureSuccessStatusCode();
-            Console.WriteLine($"Successfully sent log to Loki: {(int)response.StatusCode}");
+            // Console.WriteLine($"Successfully sent log to Loki: {(int)response.StatusCode}");
+            // Display log message in the console
+            // Enhance the console message to display different colors based on the log level
+            var color = level switch
+            {
+                "INFO" => ConsoleColor.Green,
+                "WARN" => ConsoleColor.Yellow,
+                "ERROR" => ConsoleColor.Red,
+                "DEBUG" => ConsoleColor.Blue,
+                _ => ConsoleColor.White
+            };
+
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine(logMessage);
+            Console.ForegroundColor = originalColor;
         }
         catch (HttpRequestException e)
         {
