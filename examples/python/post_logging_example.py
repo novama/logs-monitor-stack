@@ -61,10 +61,14 @@ class LokiHandler:
         log_level = record['level'].name.lower()
         log_message = record.get('message', '')
         # Format the log message to include timestamp and level
-        log_message_formatted = f"{record['time'].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} [{log_level.upper()}] {log_message}"
-
         # Get the current time in nanoseconds since the epoch
-        current_time_epoch_ns = f"{time.time_ns()}"
+        current_time_epoch_ns = time.time_ns()
+        current_time_epoch_ns_str = f"{current_time_epoch_ns}"
+        # Convert the nanoseconds to a datetime object for the log message, including milliseconds
+        log_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(current_time_epoch_ns // 1_000_000_000))
+        milliseconds = (current_time_epoch_ns // 1_000_000) % 1_000
+        log_time_with_ms = f"{log_time}.{milliseconds:03d}"
+        log_message_formatted = f"{log_time_with_ms} [{log_level.upper()}] {log_message}"
 
         # Construct the payload
         payload = {
@@ -78,7 +82,7 @@ class LokiHandler:
                     },
                     "values": [
                         [
-                            current_time_epoch_ns,
+                            current_time_epoch_ns_str,
                             log_message_formatted
                         ]
                     ]
@@ -87,7 +91,7 @@ class LokiHandler:
         }
 
         # Prints payload in console for debugging
-        print(payload)
+        # print(payload)
 
         # Send the log to Loki
         response = None
@@ -99,7 +103,7 @@ class LokiHandler:
                 auth=auth  # Pass auth tuple if provided, else None
             )
             response.raise_for_status()  # Raise an HTTPError if the HTTP request returned an unsuccessful status code
-            print(f"Successfully sent log to Loki: {response.status_code}")
+            # print(f"Successfully sent log to Loki: {response.status_code}")
         except requests.exceptions.RequestException as e:
             print(f"Failed to send log to Loki: {e}")
             if response is not None:

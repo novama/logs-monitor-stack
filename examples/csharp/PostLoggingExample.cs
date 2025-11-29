@@ -1,7 +1,7 @@
 /*
    Loki Logging Example Script (Direct API Integration with C#)
 
-   This script demonstrates how to directly POST logs to the Loki Push Logs API by configuring a 
+   This script demonstrates how to directly POST logs to the Loki Push Logs API by configuring a
    custom log handler (`LokiHandler`) to format and send logs. It includes:
    - A custom log handler (`LokiHandler`) to format and send logs directly to the Loki Push Logs API.
    - Support for multi-tenancy and optional basic authentication.
@@ -111,9 +111,10 @@ public class LokiHandler
 
         var logLevel = level.Trim().ToLower();
         // Get the current time in nanoseconds since the epoch
-        var currentTimeEpochNs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000 + "";
+        var now = DateTimeOffset.UtcNow;
+        var currentTimeEpochNs = now.ToUnixTimeMilliseconds() * 1000000;
         // Get the formatted timestamp to use in the log message
-        var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        var timestamp = now.ToString("yyyy-MM-dd HH:mm:ss.fff");
         var logMessage = $"{timestamp} [{level}] {message}";
 
         var payload = new
@@ -131,7 +132,7 @@ public class LokiHandler
                     },
                     values = new[]
                     {
-                        new[] { currentTimeEpochNs, logMessage }
+                        new[] { currentTimeEpochNs.ToString(), logMessage }
                     }
                 }
             }
